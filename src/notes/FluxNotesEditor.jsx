@@ -13,7 +13,7 @@ import ContextPortal from '../context/ContextPortal';
 import {Row, Col} from 'react-flexbox-grid';
 import EditorToolbar from './EditorToolbar';
 import Button from '../elements/Button';
-import Divider from 'material-ui/Divider';
+import {TextField, Divider} from 'material-ui';
 import AutoReplace from 'slate-auto-replace'
 import SuggestionsPlugin from '../lib/slate-suggestions-dist'
 import position from '../lib/slate-suggestions-dist/caret-position';
@@ -182,6 +182,7 @@ class FluxNotesEditor extends React.Component {
             state: initialState,
             isPortalOpen: false,
             portalOptions: null,
+            isEditingNoteName: false
         };
     }
 
@@ -1047,6 +1048,47 @@ class FluxNotesEditor extends React.Component {
         this.props.setLayout("right-collapsed");
     }
 
+    /**
+     * Enable edit mode for a note name
+     */
+    enableNoteNameEditing = () => {
+        this.setState({
+            isEditingNoteName: true
+        });
+    }
+
+    /**
+     * Handle the user submitting a new name for a note
+     */
+    submitNoteNameChange = (e) => {
+        if(e.key === "Enter") {
+            this.props.selectedNote.subject = e.target.value;
+            this.setState({
+                isEditingNoteName: false
+            });
+        }
+    }
+
+    /**
+     * Render a TextField if the user wishes to edit the note name, otherwise render the note name as plain text
+     */
+    renderNoteNameEditor = (noteTitle) => {
+        if(this.state.isEditingNoteName) {
+            return (
+                <TextField
+                    id="note-title-input"
+                    autoFocus={true}
+                    defaultValue={noteTitle}
+                    onKeyPress={this.submitNoteNameChange}
+                />
+            );
+        } else {
+            return (
+                <p className="note-description-detail-value" id="note-title">{noteTitle}</p>
+            );
+        }
+    }
+
     render = () => {
         const CreatorsPortal = this.suggestionsPluginCreators.SuggestionPortal;
         const InsertersPortal = this.suggestionsPluginInserters.SuggestionPortal;
@@ -1078,8 +1120,8 @@ class FluxNotesEditor extends React.Component {
                 <div id="note-description">
                     <Row end="xs">
                         <Col xs={2}>
-                            <p className="note-description-detail-name">Name</p>
-                            <p className="note-description-detail-value" id="note-title">{noteTitle}</p>
+                            <p className="note-description-detail-name">Name <FontAwesome name="pencil" onClick={this.enableNoteNameEditing} /></p>
+                            {this.renderNoteNameEditor(noteTitle)}
                         </Col>
                         <Col xs={2}>
                             <p className="note-description-detail-name">Date</p>
